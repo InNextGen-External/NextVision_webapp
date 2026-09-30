@@ -1,0 +1,6 @@
+node_modules
+.data
+.env
+e2e-out
+worker/models/*.onnx
+__pycache__

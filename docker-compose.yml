@@ -1,0 +1,16 @@
+# Local/staging: app + Postgres. For production use a managed Postgres and set DATABASE_URL instead.
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: nextvision, POSTGRES_PASSWORD: "${DB_PASSWORD:?set DB_PASSWORD}", POSTGRES_DB: nextvision }
+    volumes: [pgdata:/var/lib/postgresql/data]
+  app:
+    build: .
+    depends_on: [db]
+    ports: ["8080:8080"]
+    volumes: [media:/data]
+    environment:
+      DATABASE_URL: postgres://nextvision:${DB_PASSWORD}@db:5432/nextvision?sslmode=disable
+      COOKIE_SECURE: "false"   # plain HTTP on localhost only; keep true behind HTTPS
+      TRUST_PROXY: "false"
+volumes: { pgdata: {}, media: {} }

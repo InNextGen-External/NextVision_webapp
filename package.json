@@ -1,0 +1,27 @@
+{
+  "name": "nextvision",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "NextVision — video analytics demo platform (people and vehicle counting, zones, line crossing)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "node scripts/e2e.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.0",
+    "@fontsource/ibm-plex-mono": "^5.2.0",
+    "@fontsource/ibm-plex-sans-thai": "^5.2.0",
+    "@fontsource/saira-semi-condensed": "^5.2.0",
+    "express": "^5.2.1",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}
