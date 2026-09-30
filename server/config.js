@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { assertSchemaName } from './db.js'
 
 const bool = (v, d = false) => (v == null || v === '' ? d : /^(1|true|yes|on)$/i.test(String(v)))
 const int = (v, d) => (Number.isFinite(Number(v)) && v !== '' && v != null ? Number(v) : d)
@@ -7,6 +8,7 @@ export function loadConfig(env = process.env) {
   return {
     port: int(env.PORT, 8080),
     databaseUrl: env.DATABASE_URL || '',                  // Postgres in the cloud (Supabase, Neon, RDS, Cloud SQL...)
+    dbSchema: env.DB_SCHEMA ? assertSchemaName(env.DB_SCHEMA.trim()) : '', // Postgres schema for all NextVision tables (created if missing; default: server's default, usually public)
     dataDir: env.DATA_DIR || path.resolve('.data'),       // embedded Postgres (when DATABASE_URL is empty) and all video files
     cookieSecure: bool(env.COOKIE_SECURE, env.NODE_ENV === 'production'),
     trustProxy: bool(env.TRUST_PROXY, env.NODE_ENV === 'production'),

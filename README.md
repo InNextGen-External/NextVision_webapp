@@ -43,6 +43,8 @@ PYTHON_BIN=$(which python) BOOTSTRAP_ADMIN_USERNAME=admin BOOTSTRAP_ADMIN_PASSWO
 # เปิด http://localhost:8080
 ```
 
+ตั้ง `DB_SCHEMA=nextvision` ถ้าต้องการแยกตารางไว้คนละ Postgres schema (สร้างให้อัตโนมัติ)
+
 ไม่ตั้ง `DATABASE_URL` ระบบใช้ Postgres แบบฝัง (PGlite) เก็บใน `DATA_DIR` เหมาะกับทดลองเครื่องเดียว
 
 ## ทดสอบ

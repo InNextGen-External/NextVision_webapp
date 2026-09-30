@@ -6,7 +6,7 @@ import { audit } from './store/misc.js'
 import { checkPasswordPolicy } from './auth.js'
 
 const config = loadConfig()
-const db = await openDb({ databaseUrl: config.databaseUrl, dataDir: config.dataDir })
+const db = await openDb({ databaseUrl: config.databaseUrl, dataDir: config.dataDir, schema: config.dbSchema })
 
 if (config.bootstrapAdmin && (await countUsers(db)) === 0) {
   checkPasswordPolicy(config.bootstrapAdmin.password, config.passwordMinLength)

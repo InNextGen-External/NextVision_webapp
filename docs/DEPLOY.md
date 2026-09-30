@@ -2,7 +2,7 @@
 
 ใช้ขั้นตอนเดียวกับ NextOCR ต่างกันตรงที่ต้องมีดิสก์และ CPU
 
-1. **Supabase**: สร้างโปรเจกต์ใหม่ (หรือใช้อันเดิมคนละ schema ไม่แนะนำ) แล้วคัดลอก *Session pooler* connection string (IPv4)
+1. **Supabase**: สร้างโปรเจกต์ใหม่ (หรือใช้อันเดิมแล้วตั้ง `DB_SCHEMA` แยก) แล้วคัดลอก *Session pooler* connection string (IPv4)
 2. **GitHub**: push repo นี้ (สร้าง repo ใหม่ เช่น `NextVision_webapp`)
 3. **Render → New → Web Service** ต่อ repo, Runtime = **Docker**, Region = Singapore
 4. **Instance type**: เริ่มที่ **Standard (1 CPU)** ขึ้นไป — Free/Starter ใช้ได้แต่ประมวลผลช้ามาก (Free ยัง sleep และไม่มีดิสก์)
@@ -10,6 +10,7 @@
 6. **Environment** (เป็น secret ทั้งหมด ห้ามวางในแชท):
    - `DATABASE_URL` = Session pooler string
    - `BOOTSTRAP_ADMIN_USERNAME`, `BOOTSTRAP_ADMIN_PASSWORD` (≥ 10 ตัว)
+   - `DB_SCHEMA` (ไม่บังคับ) เช่น `nextvision` — เก็บตารางทั้งหมดใน schema แยก ระบบสร้างให้ถ้ายังไม่มี และตั้ง `search_path` ทุก connection ทำให้ใช้ Supabase โปรเจกต์เดียวร่วมกับ NextOCR ได้โดยตารางไม่ชนกัน (ต้องใช้ Session pooler หรือ direct connection ไม่ใช่ Transaction pooler และ role ต้องมีสิทธิ์ CREATE บน database)
    - `DATA_DIR=/data`
    - `NODE_ENV=production`
    - ปรับได้: `MAX_UPLOAD_MB`, `MAX_CLIP_SECONDS`

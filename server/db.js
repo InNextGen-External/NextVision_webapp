@@ -8,10 +8,19 @@ import { PGlite } from '@electric-sql/pglite'
  *  - otherwise         -> PGlite (real Postgres compiled to WASM, persisted in DATA_DIR; single-instance dev/demo)
  * `query(sql, params)` returns rows. `tx(fn)` runs fn({query}) inside one transaction.
  */
-export async function openDb({ databaseUrl, dataDir, memory = false }) {
+export async function openDb({ databaseUrl, dataDir, memory = false, schema = '' }) {
   let db
+  const sch = schema ? assertSchemaName(schema) : ''
+  const setPath = sch ? `set search_path to ${quoteIdent(sch)}, public` : ''
   if (databaseUrl) {
     const pool = new pg.Pool({ connectionString: databaseUrl, max: 8, ssl: /sslmode=disable/.test(databaseUrl) || /localhost|127\.0\.0\.1/.test(databaseUrl) ? false : { rejectUnauthorized: false } })
+    if (sch) {
+      // Create the schema first, then pin search_path on every new pooled connection (queued ahead of any caller query).
+      // Uses SET rather than the startup "options" parameter because poolers (Supabase/pgbouncer) reject startup options.
+      // Register the hook BEFORE the first query so even the very first connection is pinned (SET to a not-yet-existing schema is allowed).
+      pool.on('connect', (c) => { c.query(setPath).catch((e) => console.error('[db] failed to set search_path:', e.message)) })
+      await pool.query(`create schema if not exists ${quoteIdent(sch)}`)
+    }
     pg.types.setTypeParser(1082, (v) => v) // keep DATE as 'YYYY-MM-DD' text
     db = {
       kind: 'postgres',
@@ -28,6 +37,7 @@ export async function openDb({ databaseUrl, dataDir, memory = false }) {
     const P = { parsers: { 1082: (v) => v } } // keep DATE as 'YYYY-MM-DD' text
     const lite = new PGlite(memory ? undefined : dataDir)
     await lite.waitReady
+    if (sch) { await lite.exec(`create schema if not exists ${quoteIdent(sch)}`); await lite.exec(setPath) }
     db = {
       kind: memory ? 'memory' : 'embedded',
       query: async (sql, params = []) => (await lite.query(sql, params, P)).rows,
@@ -38,6 +48,13 @@ export async function openDb({ databaseUrl, dataDir, memory = false }) {
   await migrate(db)
   return db
 }
+
+const SCHEMA_RE = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/
+export function assertSchemaName(name) {
+  if (!SCHEMA_RE.test(name) || /^pg_/i.test(name) || /^information_schema$/i.test(name)) throw new Error(`Invalid DB_SCHEMA "${name}": use letters, digits and underscore only (max 63, not starting with a digit or pg_)`)
+  return name
+}
+const quoteIdent = (n) => `"${n.replace(/"/g, '""')}"`
 
 const MIGRATIONS = [
   `create table if not exists schema_version(v int primary key)`,
